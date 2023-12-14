@@ -6,20 +6,23 @@
 
 package de.dicos.springboot.repairservice.restful.api;
 
+import de.dicos.springboot.repairservice.gen.model.RepairRequest;
+import de.dicos.springboot.repairservice.restful.AdministrationService;
+import de.dicos.springboot.repairservice.restful.RepairEstimatorService;
+import de.dicos.springboot.repairservice.restful.exception.NoEstimateException;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import de.dicos.springboot.repairservice.gen.model.RepairRequest;
-import de.dicos.springboot.repairservice.restful.AdministrationService;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
- *
  * @author jtibke
  */
 @NoArgsConstructor
@@ -33,6 +36,9 @@ public class RepairRequestController
 	// /////////////////////////////////////////////////////////
 
 	@Autowired
+	private RepairEstimatorService repairEstimatorService;
+
+	@Autowired
 	private AdministrationService administrationService;
 
 	// /////////////////////////////////////////////////////////
@@ -43,6 +49,22 @@ public class RepairRequestController
 	// /////////////////////////////////////////////////////////
 	// Methods
 	// /////////////////////////////////////////////////////////
+
+	@GetMapping(value = "/estimate", produces = MediaType.APPLICATION_JSON_VALUE)
+	public double getRepairEstimate(@RequestParam String carModel, @RequestParam String[] actions)
+	{
+		double estimate = 0;
+		// sum up repair estimates
+		for (String action : actions) {
+			try {
+				estimate += repairEstimatorService.getEstimate(carModel, action);
+			} catch (NoEstimateException e) {
+				// return 404 if estimate not found
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+			}
+		}
+		return estimate;
+	}
 
 	@GetMapping(value = "/create", produces = MediaType.APPLICATION_JSON_VALUE)
 	public void sendRepairRequest(@ParameterObject RepairRequest request)

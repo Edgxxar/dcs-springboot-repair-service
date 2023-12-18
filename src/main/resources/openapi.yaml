@@ -23,6 +23,25 @@ paths:
           description: Bad request, invalid input data
 components:
   schemas:
+    RepairEstimate:
+      type: object
+      properties:
+        carModel:
+          type: string
+          description: Car's model
+        totalPriceEstimation:
+          type: number
+          format: double
+          description: Estimated total price for the repair operations
+        repairOperations:
+          type: array
+          items:
+            $ref: '#/components/schemas/RepairOperation'
+          description: List of necessary repair operations
+      required:
+        - carModel
+        - totalPriceEstimation
+        - repairOperations
     RepairRequest:
       type: object
       properties:

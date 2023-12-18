@@ -10,6 +10,9 @@ spring:
 
 springdoc.api-docs.enabled: false
 
+repairservice:
+  priceList: src/main/resources/price_estimations.csv
+
 ---
 spring:
   profiles: devel

@@ -6,6 +6,7 @@
 
 package de.dicos.springboot.repairservice.restful.api;
 
+import de.dicos.springboot.repairservice.gen.model.RepairEstimate;
 import de.dicos.springboot.repairservice.gen.model.RepairRequest;
 import de.dicos.springboot.repairservice.restful.AdministrationService;
 import de.dicos.springboot.repairservice.restful.RepairEstimatorService;
@@ -51,19 +52,16 @@ public class RepairRequestController
 	// /////////////////////////////////////////////////////////
 
 	@GetMapping(value = "/estimate", produces = MediaType.APPLICATION_JSON_VALUE)
-	public double getRepairEstimate(@RequestParam String carModel, @RequestParam String[] actions)
+	public RepairEstimate getRepairEstimate(@RequestParam String carModel, @RequestParam String[] actions)
 	{
-		double estimate = 0;
-		// sum up repair estimates
-		for (String action : actions) {
-			try {
-				estimate += repairEstimatorService.getEstimate(carModel, action);
-			} catch (NoEstimateException e) {
-				// return 404 if estimate not found
-				throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-			}
+		if (actions.length == 0)
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "at least one repair action required");
+		try {
+			return repairEstimatorService.getEstimate(carModel, actions);
+		} catch (NoEstimateException e) {
+			// return 400 if estimate not found
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
 		}
-		return estimate;
 	}
 
 	@GetMapping(value = "/create", produces = MediaType.APPLICATION_JSON_VALUE)
